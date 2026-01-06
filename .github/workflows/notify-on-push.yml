@@ -40,11 +40,14 @@ jobs:
 
           # Build message
           MESSAGE="🚀 *BuildPCBs iOS Update*
+          read -r -d '' MESSAGE << EOM
+🚀 *BuildPCBs iOS Update*
 
 \`$COMMIT_MSG\`
 
 🌿 \`$BRANCH\` • 👤 ${{ steps.commit.outputs.author }}
-📊 $FILES_CHANGED files • +$ADDITIONS -$DELETIONS"
+📊 $FILES_CHANGED files • +$ADDITIONS -$DELETIONS
+EOM
 
           # Build inline keyboard with buttons
           KEYBOARD='{"inline_keyboard":[[{"text":"📝 View Commit","url":"https://github.com/BuildPCBs/BuildPCBs-AI-iOS/commit/${{ steps.commit.outputs.sha }}"},{"text":"📂 Repository","url":"https://github.com/BuildPCBs/BuildPCBs-AI-iOS"}]]}'
