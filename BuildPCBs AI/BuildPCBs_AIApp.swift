@@ -11,7 +11,8 @@ import SwiftUI
 struct BuildPCBs_AIApp: App {
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            IntroView()
+            // HomeScreen()
         }
     }
 }
