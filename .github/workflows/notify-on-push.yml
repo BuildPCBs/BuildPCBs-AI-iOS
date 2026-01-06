@@ -26,19 +26,32 @@ jobs:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
         run: |
-          MESSAGE="🚀 *BuildPCBs Update*
+          # Get commit stats
+          FILES_CHANGED=$(git diff-tree --no-commit-id --name-only -r ${{ steps.commit.outputs.sha }} | wc -l | xargs)
+          ADDITIONS=$(git show --stat ${{ steps.commit.outputs.sha }} | tail -1 | grep -oE '[0-9]+ insertion' | grep -oE '[0-9]+' || echo "0")
+          DELETIONS=$(git show --stat ${{ steps.commit.outputs.sha }} | tail -1 | grep -oE '[0-9]+ deletion' | grep -oE '[0-9]+' || echo "0")
+          BRANCH="${GITHUB_REF#refs/heads/}"
 
-          New commit to BuildPCBs-AI-iOS
+          # Truncate commit message if too long
+          COMMIT_MSG="${{ steps.commit.outputs.message }}"
+          if [ ${#COMMIT_MSG} -gt 100 ]; then
+            COMMIT_MSG="${COMMIT_MSG:0:100}..."
+          fi
 
-          📝 ${{ steps.commit.outputs.message }}
-          👤 by ${{ steps.commit.outputs.author }}
-          🔗 [View Commit](https://github.com/BuildPCBs/BuildPCBs-AI-iOS/commit/${{ steps.commit.outputs.sha }})
-          "
+          # Build message
+          MESSAGE="🚀 *BuildPCBs iOS Update*
 
+\`$COMMIT_MSG\`
+
+🌿 \`$BRANCH\` • 👤 ${{ steps.commit.outputs.author }}
+📊 $FILES_CHANGED files • +$ADDITIONS -$DELETIONS"
+
+          # Build inline keyboard with buttons
+          KEYBOARD='{"inline_keyboard":[[{"text":"📝 View Commit","url":"https://github.com/BuildPCBs/BuildPCBs-AI-iOS/commit/${{ steps.commit.outputs.sha }}"},{"text":"📂 Repository","url":"https://github.com/BuildPCBs/BuildPCBs-AI-iOS"}]]}'
+
+          # Send message
           curl -s -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage" \
-            -d chat_id="${TELEGRAM_CHAT_ID}" \
-            -d text="${MESSAGE}" \
-            -d parse_mode="Markdown" \
-            -d disable_web_page_preview=false
+            -H "Content-Type: application/json" \
+            -d "{\"chat_id\":\"${TELEGRAM_CHAT_ID}\",\"text\":\"${MESSAGE}\",\"parse_mode\":\"Markdown\",\"reply_markup\":${KEYBOARD},\"disable_web_page_preview\":true}"
 
           echo "✅ Telegram notification sent!"
