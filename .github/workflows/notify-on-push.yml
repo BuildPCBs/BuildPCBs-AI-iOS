@@ -38,23 +38,24 @@ jobs:
             COMMIT_MSG="${COMMIT_MSG:0:100}..."
           fi
 
-          # Build message
-          MESSAGE="🚀 *BuildPCBs iOS Update*
-          read -r -d '' MESSAGE << EOM
-🚀 *BuildPCBs iOS Update*
-
-\`$COMMIT_MSG\`
-
-🌿 \`$BRANCH\` • 👤 ${{ steps.commit.outputs.author }}
-📊 $FILES_CHANGED files • +$ADDITIONS -$DELETIONS
-EOM
+          # Build message (using printf to handle multiline properly)
+          MESSAGE=$(printf "🚀 *BuildPCBs iOS Update*\n\n\`%s\`\n\n🌿 \`%s\` • 👤 %s\n📊 %s files • +%s -%s" \
+            "$COMMIT_MSG" \
+            "$BRANCH" \
+            "${{ steps.commit.outputs.author }}" \
+            "$FILES_CHANGED" \
+            "$ADDITIONS" \
+            "$DELETIONS")
 
           # Build inline keyboard with buttons
           KEYBOARD='{"inline_keyboard":[[{"text":"📝 View Commit","url":"https://github.com/BuildPCBs/BuildPCBs-AI-iOS/commit/${{ steps.commit.outputs.sha }}"},{"text":"📂 Repository","url":"https://github.com/BuildPCBs/BuildPCBs-AI-iOS"}]]}'
 
+          # Escape message for JSON
+          MESSAGE=$(echo "$MESSAGE" | jq -Rs .)
+
           # Send message
           curl -s -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage" \
             -H "Content-Type: application/json" \
-            -d "{\"chat_id\":\"${TELEGRAM_CHAT_ID}\",\"text\":\"${MESSAGE}\",\"parse_mode\":\"Markdown\",\"reply_markup\":${KEYBOARD},\"disable_web_page_preview\":true}"
+            -d "{\"chat_id\":\"${TELEGRAM_CHAT_ID}\",\"text\":${MESSAGE},\"parse_mode\":\"Markdown\",\"reply_markup\":${KEYBOARD},\"disable_web_page_preview\":true}"
 
           echo "✅ Telegram notification sent!"
