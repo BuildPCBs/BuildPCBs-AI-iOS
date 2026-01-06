@@ -39,10 +39,11 @@ jobs:
           fi
 
           # Build message (using printf to handle multiline properly)
-          MESSAGE=$(printf "🚀 *BuildPCBs iOS Update*\n\n\`%s\`\n\n🌿 \`%s\` • 👤 %s\n📊 %s files • +%s -%s" \
+          MESSAGE=$(printf "🚀 *BuildPCBs iOS Update*\n\n\`%s\`\n\n🌿 \`%s\` • 👤 [%s](https://github.com/%s)\n📊 %s files • +%s -%s" \
             "$COMMIT_MSG" \
             "$BRANCH" \
-            "${{ steps.commit.outputs.author }}" \
+            "${{ github.actor }}" \
+            "${{ github.actor }}" \
             "$FILES_CHANGED" \
             "$ADDITIONS" \
             "$DELETIONS")
